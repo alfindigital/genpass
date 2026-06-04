@@ -1,15 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Sparkles, Copy, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Eye, EyeOff, Copy, ChevronDown, Sun, Moon, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function PasswordGenerator() {
   const [isHydrated, setIsHydrated] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('weak')
   const [showPassword, setShowPassword] = useState(false)
-  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('medium')
   const [passwordHistory, setPasswordHistory] = useState<string[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(true)
+
   const [preferences, setPreferences] = useState({
     length: 16,
     includeUppercase: true,
@@ -18,31 +21,45 @@ export default function PasswordGenerator() {
     includeSpecial: true,
   })
 
+  // Load preferences and theme on mount
   useEffect(() => {
-    setIsHydrated(true)
-    const savedPrefs = localStorage.getItem('passwordPrefs')
-    if (savedPrefs) setPreferences(JSON.parse(savedPrefs))
+    const savedPreferences = localStorage.getItem('passwordGenPreferences')
+    if (savedPreferences) {
+      setPreferences(JSON.parse(savedPreferences))
+    }
+
     const savedHistory = localStorage.getItem('passwordGenHistory')
-    if (savedHistory) setPasswordHistory(JSON.parse(savedHistory))
+    if (savedHistory) {
+      setPasswordHistory(JSON.parse(savedHistory))
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'dark'
+    setIsDarkMode(savedTheme === 'dark')
+    setIsHydrated(true)
   }, [])
 
+  // Save preferences whenever they change
   useEffect(() => {
     if (isHydrated) {
-      localStorage.setItem('passwordPrefs', JSON.stringify(preferences))
+      localStorage.setItem('passwordGenPreferences', JSON.stringify(preferences))
     }
   }, [preferences, isHydrated])
 
-  const calculateStrength = (password: string): 'weak' | 'medium' | 'strong' => {
+  // Calculate password strength
+  const calculateStrength = useCallback((password: string): 'weak' | 'medium' | 'strong' => {
     let strength = 0
-    if (password.length >= 8) strength++
-    if (password.length >= 16) strength++
     if (/[a-z]/.test(password)) strength++
     if (/[A-Z]/.test(password)) strength++
-    if (/[0-9]/.test(password)) strength++
-    if (/[^a-zA-Z0-9]/.test(password)) strength++
-    return strength <= 2 ? 'weak' : strength <= 4 ? 'medium' : 'strong'
-  }
+    if (/\d/.test(password)) strength++
+    if (/[^a-zA-Z\d]/.test(password)) strength++
+    if (password.length >= 12) strength++
 
+    if (strength <= 2) return 'weak'
+    if (strength <= 3) return 'medium'
+    return 'strong'
+  }, [])
+
+  // Generate password
   const generatePassword = () => {
     const characterSets = {
       uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -70,6 +87,7 @@ export default function PasswordGenerator() {
     const strength = calculateStrength(password)
     setPasswordStrength(strength)
 
+    // Add to history (max 5)
     setPasswordHistory((prev) => {
       const updated = [password, ...prev].slice(0, 5)
       localStorage.setItem('passwordGenHistory', JSON.stringify(updated))
@@ -77,204 +95,243 @@ export default function PasswordGenerator() {
     })
   }
 
+  // Generate multiple passwords
   const generateMultiple = () => {
     for (let i = 0; i < 5; i++) {
-      setTimeout(generatePassword, i * 100)
+      generatePassword()
     }
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('Password copied to clipboard')
+  // Copy to clipboard
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(currentPassword)
+    toast.success('Password disalin ke clipboard!', {
+      duration: 2000,
+    })
   }
 
+  // Clear history
   const clearHistory = () => {
     setPasswordHistory([])
     localStorage.removeItem('passwordGenHistory')
-    toast.success('History cleared')
+    toast.success('Riwayat terhapus', { duration: 1500 })
+  }
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = isDarkMode ? 'light' : 'dark'
+    setIsDarkMode(!isDarkMode)
+    localStorage.setItem('theme', newTheme)
+
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+
+  // Get strength color and label
+  const getStrengthStyle = () => {
+    const styles = {
+      weak: { color: '#ff3333', label: 'Lemah' },
+      medium: { color: '#ffbe0b', label: 'Sedang' },
+      strong: { color: '#00d9ff', label: 'Kuat' },
+    }
+    return styles[passwordStrength]
   }
 
   if (!isHydrated) return null
 
-  const strengthColors = {
-    weak: 'from-red-500 to-red-600',
-    medium: 'from-yellow-500 to-yellow-600',
-    strong: 'from-green-500 to-green-600',
-  }
-
-  const strengthBgColors = {
-    weak: 'bg-red-500/10',
-    medium: 'bg-yellow-500/10',
-    strong: 'bg-green-500/10',
-  }
+  const strengthStyle = getStrengthStyle()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 mb-4">
-            <Sparkles className="w-6 h-6 text-primary" />
+    <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      {/* Header with Theme Toggle */}
+      <div className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Pembuat Password</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Buat password aman dan acak</p>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-            SecurePass
-          </h1>
-          <p className="text-muted-foreground text-sm">Generate strong passwords instantly</p>
-        </div>
-
-        {/* Password Display Card */}
-        <div className="backdrop-blur-xl bg-card/50 border border-primary/20 rounded-2xl p-6 mb-6 hover:border-primary/40 transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Password</p>
-            <button
-              onClick={() => setShowPassword(!showPassword)}
-              className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
-              aria-label="Toggle password visibility"
-            >
-              {showPassword ? (
-                <Eye className="w-4 h-4 text-primary" />
-              ) : (
-                <EyeOff className="w-4 h-4 text-muted-foreground" />
-              )}
-            </button>
-          </div>
-
-          <div className="bg-background/50 rounded-xl p-4 mb-4 font-mono text-lg tracking-wider break-all min-h-12 flex items-center">
-            {currentPassword ? (
-              showPassword ? (
-                <span className="text-primary font-semibold">{currentPassword}</span>
-              ) : (
-                <span className="text-primary font-semibold">{'•'.repeat(Math.min(currentPassword.length, 32))}</span>
-              )
+          <button
+            onClick={toggleTheme}
+            className="p-2 sm:p-2.5 rounded-lg hover:bg-card transition-colors"
+            title={isDarkMode ? 'Mode Terang' : 'Mode Gelap'}
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5 sm:w-6 sm:h-6" />
             ) : (
-              <span className="text-muted-foreground">Click generate to create a password</span>
+              <Moon className="w-5 h-5 sm:w-6 sm:h-6" />
             )}
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={`h-2 flex-1 rounded-full bg-gradient-to-r ${strengthColors[passwordStrength]}`}></div>
-              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${strengthBgColors[passwordStrength]} ${passwordStrength === 'weak' ? 'text-red-400' : passwordStrength === 'medium' ? 'text-yellow-400' : 'text-green-400'}`}>
-                {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
-              </span>
-            </div>
-          </div>
-
-          {currentPassword && (
-            <button
-              onClick={() => copyToClipboard(currentPassword)}
-              className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors font-medium text-sm"
-            >
-              <Copy className="w-4 h-4" />
-              Copy Password
-            </button>
-          )}
+          </button>
         </div>
+      </div>
 
-        {/* Controls Card */}
-        <div className="backdrop-blur-xl bg-card/50 border border-primary/20 rounded-2xl p-6 mb-6">
+      {/* Main Content */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        {/* Settings Section */}
+        <div className="bg-card rounded-lg p-4 sm:p-6 mb-6 border border-border">
+          <h2 className="text-base sm:text-lg font-semibold mb-4">Pengaturan</h2>
+
           {/* Length Slider */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-semibold text-foreground">Length</label>
-              <span className="px-3 py-1 rounded-lg bg-primary/10 text-primary font-mono font-semibold text-sm">
-                {preferences.length}
-              </span>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">Panjang Password</label>
+              <span className="text-base sm:text-lg font-semibold text-primary">{preferences.length}</span>
             </div>
             <input
               type="range"
               min="8"
               max="128"
               value={preferences.length}
-              onChange={(e) => setPreferences({ ...preferences, length: parseInt(e.target.value) })}
-              className="w-full h-2 bg-secondary/30 rounded-lg appearance-none cursor-pointer accent-primary"
+              onChange={(e) =>
+                setPreferences({
+                  ...preferences,
+                  length: parseInt(e.target.value),
+                })
+              }
+              className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <div className="flex justify-between text-xs text-muted-foreground mt-2">
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
               <span>8</span>
               <span>128</span>
             </div>
           </div>
 
-          {/* Character Type Options */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Include</p>
-
+          {/* Character Options */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {[
-              { key: 'includeUppercase', label: 'Uppercase (A-Z)', icon: 'A' },
-              { key: 'includeLowercase', label: 'Lowercase (a-z)', icon: 'a' },
-              { key: 'includeNumbers', label: 'Numbers (0-9)', icon: '0' },
-              { key: 'includeSpecial', label: 'Special (!@#$%)', icon: '#' },
-            ].map(({ key, label, icon }) => (
-              <label key={key} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/5 cursor-pointer transition-colors">
+              { key: 'includeUppercase', label: 'Huruf Besar (A-Z)' },
+              { key: 'includeLowercase', label: 'Huruf Kecil (a-z)' },
+              { key: 'includeNumbers', label: 'Angka (0-9)' },
+              { key: 'includeSpecial', label: 'Karakter Khusus (!@#$)' },
+            ].map(({ key, label }) => (
+              <label
+                key={key}
+                className="flex items-center gap-3 p-2 sm:p-3 rounded-lg hover:bg-border/50 transition-colors cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={preferences[key as keyof typeof preferences] as boolean}
                   onChange={(e) =>
-                    setPreferences({ ...preferences, [key]: e.target.checked })
+                    setPreferences({
+                      ...preferences,
+                      [key]: e.target.checked,
+                    })
                   }
-                  className="w-4 h-4 rounded accent-primary cursor-pointer"
+                  className="w-4 h-4 rounded cursor-pointer accent-primary"
                 />
-                <span className="w-6 h-6 flex items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-bold">
-                  {icon}
-                </span>
-                <span className="text-sm text-foreground">{label}</span>
+                <span className="text-sm">{label}</span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Generate Buttons */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
             onClick={generatePassword}
-            className="px-4 py-3 bg-[#00d9ff] hover:bg-[#00c9ef] text-[#0a0e27] rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-cyan-500/20"
+            className="px-3 sm:px-4 py-3 sm:py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
           >
-            Generate
+            Buat Password
           </button>
           <button
             onClick={generateMultiple}
-            className="px-4 py-3 bg-[#2a3f5f]/60 hover:bg-[#2a3f5f] text-[#00d9ff] rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 border border-[#00d9ff]/30"
+            className="px-3 sm:px-4 py-3 sm:py-4 bg-secondary/60 hover:bg-secondary/80 text-secondary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 border border-secondary/30 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
           >
-            5 More
+            Buat 5
           </button>
         </div>
 
-        {/* History Section */}
-        {passwordHistory.length > 0 && (
-          <div className="backdrop-blur-xl bg-card/50 border border-primary/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Recent</h2>
-              <button
-                onClick={clearHistory}
-                className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
-                aria-label="Clear history"
+        {/* Password Result Section */}
+        {currentPassword && (
+          <div className="bg-card rounded-lg p-4 sm:p-6 mb-6 border border-border">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h3 className="text-base sm:text-lg font-semibold">Hasil Password</h3>
+              <div
+                className="px-3 py-1 rounded-full text-xs sm:text-sm font-medium"
+                style={{ color: strengthStyle.color, backgroundColor: `${strengthStyle.color}20` }}
               >
-                <Trash2 className="w-4 h-4" />
+                {strengthStyle.label}
+              </div>
+            </div>
+
+            {/* Password Display */}
+            <div className="flex items-center gap-2 mb-4 bg-input rounded-lg p-3 sm:p-4">
+              <code className="flex-1 font-mono text-xs sm:text-sm break-all">
+                {showPassword ? currentPassword : '•'.repeat(Math.min(currentPassword.length, 40))}
+              </code>
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className="p-2 hover:bg-border rounded-lg transition-colors flex-shrink-0 min-w-[44px] flex items-center justify-center"
+                title={showPassword ? 'Sembunyikan' : 'Tampilkan'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+                ) : (
+                  <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+                )}
               </button>
             </div>
 
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {passwordHistory.map((pwd, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-background/50 rounded-lg hover:bg-background/80 transition-colors group"
-                >
-                  <span className="font-mono text-xs text-muted-foreground truncate flex-1">
-                    {pwd.substring(0, 20)}
-                    {pwd.length > 20 && '...'}
-                  </span>
+            {/* Copy Button */}
+            <button
+              onClick={copyToClipboard}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 sm:py-4 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-medium transition-all duration-300 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
+            >
+              <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
+              Salin Password
+            </button>
+          </div>
+        )}
+
+        {/* History Section - Collapsible */}
+        {passwordHistory.length > 0 && (
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <button
+              onClick={() => setHistoryOpen(!historyOpen)}
+              className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-border/50 transition-colors"
+            >
+              <h3 className="text-base sm:text-lg font-semibold">Password Terbaru</h3>
+              <ChevronDown
+                className={`w-5 h-5 transition-transform duration-300 ${historyOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {historyOpen && (
+              <div className="border-t border-border px-3 sm:px-4 py-3 sm:py-4 space-y-2">
+                {passwordHistory.map((pwd, idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 sm:p-3 bg-input rounded-lg group">
+                    <code className="flex-1 font-mono text-xs sm:text-sm break-all text-muted-foreground">
+                      {pwd}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(pwd)
+                        toast.success('Disalin!', { duration: 1500 })
+                      }}
+                      className="p-2 hover:bg-border rounded-lg transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 min-w-[44px] flex items-center justify-center"
+                      title="Salin"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+
+                {passwordHistory.length > 0 && (
                   <button
-                    onClick={() => copyToClipboard(pwd)}
-                    className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-primary/10 text-primary rounded transition-all"
+                    onClick={clearHistory}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 sm:py-3 mt-3 sm:mt-4 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg font-medium transition-colors text-xs sm:text-sm min-h-[44px]"
                   >
-                    <Copy className="w-3 h-3" />
+                    <Trash2 className="w-4 h-4" />
+                    Hapus Riwayat
                   </button>
-                </div>
-              ))}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </main>
   )
 }

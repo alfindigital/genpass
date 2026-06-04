@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Password Generator',
-  description: 'Generate secure, random passwords instantly',
+  title: 'Password Generator - Pembuat Password Aman',
+  description: 'Buat password aman dan acak secara instan',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -36,7 +36,23 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark bg-background">
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                if (theme === 'light') {
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch {}
+            `,
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         {children}
         <Toaster position="bottom-right" theme="dark" />
