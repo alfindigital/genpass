@@ -102,12 +102,44 @@ export default function PasswordGenerator() {
     }
   }
 
-  // Copy to clipboard
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(currentPassword)
-    toast.success('Password disalin ke clipboard!', {
-      duration: 2000,
-    })
+  // Copy to clipboard with fallback
+  const copyToClipboard = async () => {
+    try {
+      // Try modern Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(currentPassword)
+        toast.success('Password disalin ke clipboard!', {
+          duration: 2000,
+        })
+      } else {
+        // Fallback for older browsers or restricted environments
+        fallbackCopyToClipboard()
+      }
+    } catch (err) {
+      // If Clipboard API fails, use fallback
+      fallbackCopyToClipboard()
+    }
+  }
+
+  // Fallback copy to clipboard using textarea
+  const fallbackCopyToClipboard = () => {
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = currentPassword
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      toast.success('Password disalin ke clipboard!', {
+        duration: 2000,
+      })
+    } catch (err) {
+      toast.error('Gagal menyalin password', {
+        duration: 2000,
+      })
+    }
   }
 
   // Clear history
