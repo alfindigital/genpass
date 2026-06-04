@@ -148,10 +148,10 @@ export default function PasswordGenerator() {
     <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Header with Theme Toggle */}
       <div className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Pembuat Password</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Buat password aman dan acak</p>
+            <h1 className="text-lg sm:text-xl font-bold">GenPass</h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">Aman. Lokal. Cepat.</p>
           </div>
           <button
             onClick={toggleTheme}
@@ -168,16 +168,14 @@ export default function PasswordGenerator() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
-        {/* Settings Section */}
-        <div className="bg-card rounded-lg p-4 sm:p-6 mb-6 border border-border">
-          <h2 className="text-base sm:text-lg font-semibold mb-4">Pengaturan</h2>
-
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-col min-h-screen">
+        {/* Settings Section - No Header */}
+        <div className="bg-card rounded-lg p-3 sm:p-4 mb-3 border border-border">
           {/* Length Slider */}
-          <div className="mb-6">
+          <div className="mb-3">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium">Panjang Password</label>
-              <span className="text-base sm:text-lg font-semibold text-primary">{preferences.length}</span>
+              <label className="text-xs sm:text-sm font-medium">Panjang Password</label>
+              <span className="text-sm sm:text-base font-semibold text-primary">{preferences.length}</span>
             </div>
             <input
               type="range"
@@ -199,7 +197,7 @@ export default function PasswordGenerator() {
           </div>
 
           {/* Character Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
             {[
               { key: 'includeUppercase', label: 'Huruf Besar (A-Z)' },
               { key: 'includeLowercase', label: 'Huruf Kecil (a-z)' },
@@ -208,7 +206,7 @@ export default function PasswordGenerator() {
             ].map(({ key, label }) => (
               <label
                 key={key}
-                className="flex items-center gap-3 p-2 sm:p-3 rounded-lg hover:bg-border/50 transition-colors cursor-pointer"
+                className="flex items-center gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-border/50 transition-colors cursor-pointer"
               >
                 <input
                   type="checkbox"
@@ -221,31 +219,31 @@ export default function PasswordGenerator() {
                   }
                   className="w-4 h-4 rounded cursor-pointer accent-primary"
                 />
-                <span className="text-sm">{label}</span>
+                <span className="text-xs sm:text-sm">{label}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Generate Button */}
-        <div className="mb-6">
+        <div className="mb-3">
           <button
             onClick={generatePassword}
-            className="w-full px-4 py-4 sm:py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 min-h-[48px] sm:min-h-[52px] text-base sm:text-lg flex items-center justify-center gap-2"
+            className="w-full px-3 py-3 sm:py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 min-h-[44px] text-sm sm:text-base flex items-center justify-center gap-2"
           >
-            <RotateCw className="w-5 h-5" />
+            <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
             Buat Password Baru
           </button>
         </div>
 
-        {/* Password Result Section */}
+        {/* Password Result Section - Always visible */}
         {currentPassword && (
-          <div className="bg-card rounded-lg p-4 sm:p-6 mb-6 border border-border">
-            <h3 className="text-base sm:text-lg font-semibold mb-4">Hasil Password</h3>
+          <div className="bg-card rounded-lg p-3 sm:p-4 mb-3 border border-border">
+            <h3 className="text-sm sm:text-base font-semibold mb-3">Hasil Password</h3>
 
             {/* Password Display */}
-            <div className="flex items-center gap-2 mb-4 bg-input rounded-lg p-3 sm:p-4">
-              <code className="flex-1 font-mono text-sm sm:text-base break-all text-primary font-semibold">
+            <div className="flex items-center gap-2 mb-3 bg-input rounded-lg p-2.5 sm:p-3">
+              <code className="flex-1 font-mono text-xs sm:text-sm break-all text-primary font-semibold">
                 {showPassword ? currentPassword : '•'.repeat(Math.min(currentPassword.length, 40))}
               </code>
               <button
@@ -264,7 +262,7 @@ export default function PasswordGenerator() {
             {/* Copy Button */}
             <button
               onClick={copyToClipboard}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 sm:py-4 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-medium transition-all duration-300 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 sm:py-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-medium transition-all duration-300 min-h-[44px] text-xs sm:text-sm"
             >
               <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
               Salin Password
@@ -274,22 +272,22 @@ export default function PasswordGenerator() {
 
         {/* History Section - Collapsible */}
         {passwordHistory.length > 0 && (
-          <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="bg-card rounded-lg border border-border overflow-hidden mb-3">
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
-              className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-border/50 transition-colors"
+              className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-border/50 transition-colors"
             >
-              <h3 className="text-base sm:text-lg font-semibold">Password Terbaru</h3>
+              <h3 className="text-sm sm:text-base font-semibold">Password Terbaru</h3>
               <ChevronDown
-                className={`w-5 h-5 transition-transform duration-300 ${historyOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${historyOpen ? 'rotate-180' : ''}`}
               />
             </button>
 
             {historyOpen && (
-              <div className="border-t border-border px-3 sm:px-4 py-3 sm:py-4 space-y-2">
+              <div className="border-t border-border px-2.5 sm:px-3 py-2.5 sm:py-3 space-y-1">
                 {passwordHistory.map((pwd, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 sm:p-3 bg-input rounded-lg group">
-                    <code className="flex-1 font-mono text-xs sm:text-sm break-all text-muted-foreground">
+                  <div key={idx} className="flex items-center gap-2 p-1.5 sm:p-2 bg-input rounded-lg group">
+                    <code className="flex-1 font-mono text-xs break-all text-muted-foreground">
                       {pwd}
                     </code>
                     <button
@@ -308,7 +306,7 @@ export default function PasswordGenerator() {
                 {passwordHistory.length > 0 && (
                   <button
                     onClick={clearHistory}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 sm:py-3 mt-3 sm:mt-4 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg font-medium transition-colors text-xs sm:text-sm min-h-[44px]"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg font-medium transition-colors text-xs min-h-[44px]"
                   >
                     <Trash2 className="w-4 h-4" />
                     Hapus Riwayat
@@ -318,6 +316,16 @@ export default function PasswordGenerator() {
             )}
           </div>
         )}
+
+        {/* Spacer to push footer down */}
+        <div className="flex-1" />
+
+        {/* Footer */}
+        <div className="text-center py-2 sm:py-3 mt-2 border-t border-border/30">
+          <p className="text-xs text-muted-foreground">
+            Aman. Berjalan Lokal. Tidak ada data yang dikirim ke server.
+          </p>
+        </div>
       </div>
     </main>
   )
