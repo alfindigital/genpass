@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Eye, EyeOff, Copy, ChevronDown, Sun, Moon, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Eye, EyeOff, Copy, ChevronDown, Sun, Moon, Trash2, RotateCw } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function PasswordGenerator() {
   const [isHydrated, setIsHydrated] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
-  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('weak')
   const [showPassword, setShowPassword] = useState(false)
   const [passwordHistory, setPasswordHistory] = useState<string[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -21,7 +20,7 @@ export default function PasswordGenerator() {
     includeSpecial: true,
   })
 
-  // Load preferences and theme on mount
+  // Load preferences, theme, and generate initial password on mount
   useEffect(() => {
     const savedPreferences = localStorage.getItem('passwordGenPreferences')
     if (savedPreferences) {
@@ -38,26 +37,19 @@ export default function PasswordGenerator() {
     setIsHydrated(true)
   }, [])
 
+  // Generate password when preferences change or on first load
+  useEffect(() => {
+    if (isHydrated) {
+      generatePassword()
+    }
+  }, [isHydrated, preferences])
+
   // Save preferences whenever they change
   useEffect(() => {
     if (isHydrated) {
       localStorage.setItem('passwordGenPreferences', JSON.stringify(preferences))
     }
   }, [preferences, isHydrated])
-
-  // Calculate password strength
-  const calculateStrength = useCallback((password: string): 'weak' | 'medium' | 'strong' => {
-    let strength = 0
-    if (/[a-z]/.test(password)) strength++
-    if (/[A-Z]/.test(password)) strength++
-    if (/\d/.test(password)) strength++
-    if (/[^a-zA-Z\d]/.test(password)) strength++
-    if (password.length >= 12) strength++
-
-    if (strength <= 2) return 'weak'
-    if (strength <= 3) return 'medium'
-    return 'strong'
-  }, [])
 
   // Generate password
   const generatePassword = () => {
@@ -84,8 +76,6 @@ export default function PasswordGenerator() {
     }
 
     setCurrentPassword(password)
-    const strength = calculateStrength(password)
-    setPasswordStrength(strength)
 
     // Add to history (max 5)
     setPasswordHistory((prev) => {
@@ -95,28 +85,18 @@ export default function PasswordGenerator() {
     })
   }
 
-  // Generate multiple passwords
-  const generateMultiple = () => {
-    for (let i = 0; i < 5; i++) {
-      generatePassword()
-    }
-  }
-
   // Copy to clipboard with fallback
   const copyToClipboard = async () => {
     try {
-      // Try modern Clipboard API first
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(currentPassword)
         toast.success('Password disalin ke clipboard!', {
           duration: 2000,
         })
       } else {
-        // Fallback for older browsers or restricted environments
         fallbackCopyToClipboard()
       }
     } catch (err) {
-      // If Clipboard API fails, use fallback
       fallbackCopyToClipboard()
     }
   }
@@ -162,19 +142,7 @@ export default function PasswordGenerator() {
     }
   }
 
-  // Get strength color and label
-  const getStrengthStyle = () => {
-    const styles = {
-      weak: { color: '#ff3333', label: 'Lemah' },
-      medium: { color: '#ffbe0b', label: 'Sedang' },
-      strong: { color: '#00d9ff', label: 'Kuat' },
-    }
-    return styles[passwordStrength]
-  }
-
   if (!isHydrated) return null
-
-  const strengthStyle = getStrengthStyle()
 
   return (
     <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -259,38 +227,25 @@ export default function PasswordGenerator() {
           </div>
         </div>
 
-        {/* Generate Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Generate Button */}
+        <div className="mb-6">
           <button
             onClick={generatePassword}
-            className="px-3 sm:px-4 py-3 sm:py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
+            className="w-full px-4 py-4 sm:py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 min-h-[48px] sm:min-h-[52px] text-base sm:text-lg flex items-center justify-center gap-2"
           >
-            Buat Password
-          </button>
-          <button
-            onClick={generateMultiple}
-            className="px-3 sm:px-4 py-3 sm:py-4 bg-secondary/60 hover:bg-secondary/80 text-secondary-foreground rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 border border-secondary/30 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
-          >
-            Buat 5
+            <RotateCw className="w-5 h-5" />
+            Buat Password Baru
           </button>
         </div>
 
         {/* Password Result Section */}
         {currentPassword && (
           <div className="bg-card rounded-lg p-4 sm:p-6 mb-6 border border-border">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h3 className="text-base sm:text-lg font-semibold">Hasil Password</h3>
-              <div
-                className="px-3 py-1 rounded-full text-xs sm:text-sm font-medium"
-                style={{ color: strengthStyle.color, backgroundColor: `${strengthStyle.color}20` }}
-              >
-                {strengthStyle.label}
-              </div>
-            </div>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Hasil Password</h3>
 
             {/* Password Display */}
             <div className="flex items-center gap-2 mb-4 bg-input rounded-lg p-3 sm:p-4">
-              <code className="flex-1 font-mono text-xs sm:text-sm break-all">
+              <code className="flex-1 font-mono text-sm sm:text-base break-all text-primary font-semibold">
                 {showPassword ? currentPassword : '•'.repeat(Math.min(currentPassword.length, 40))}
               </code>
               <button
