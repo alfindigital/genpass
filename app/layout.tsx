@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const poppins = Poppins({ 
+  subsets: ["latin"],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins'
+});
 
 export const metadata: Metadata = {
   title: 'Password Generator - Pembuat Password Aman',
@@ -53,7 +56,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className={`${poppins.variable} font-poppins antialiased`}>
         {children}
         <Toaster position="bottom-right" theme="dark" />
         {process.env.NODE_ENV === 'production' && <Analytics />}

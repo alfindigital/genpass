@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@theme inline {
+  --font-poppins: 'Poppins', 'Poppins Fallback';
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -75,7 +79,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
+  --font-poppins: 'Poppins', 'Poppins Fallback';
+  --font-sans: 'Poppins', 'Poppins Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -120,6 +125,14 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-poppins;
+    letter-spacing: 0.3px;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins;
+    letter-spacing: -0.5px;
+  }
+  button, input, textarea, select {
+    @apply font-poppins;
   }
 }
