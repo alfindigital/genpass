@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <style>
+      .favicon-dark { fill: #0066cc; }
+      .favicon-light { fill: #ffffff; }
+      .favicon-border { stroke: #0066cc; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+  <!-- Light background -->
+  <rect width="64" height="64" class="favicon-light"/>
+  
+  <!-- Main lock icon shape -->
+  <path d="M 32 12 C 24.268 12 18 18.268 18 26 L 18 32 C 18 34.209 16.209 36 14 36 L 14 42 C 14 47.523 18.477 52 24 52 L 40 52 C 45.523 52 50 47.523 50 42 L 50 36 C 47.791 36 46 34.209 46 32 L 46 26 C 46 18.268 39.732 12 32 12 Z M 32 18 C 36.418 18 40 21.582 40 26 L 40 32 C 40 36.418 36.418 40 32 40 C 27.582 40 24 36.418 24 32 L 24 26 C 24 21.582 27.582 18 32 18 Z" class="favicon-dark"/>
+  
+  <!-- Key indicator inside lock -->
+  <circle cx="32" cy="32" r="4" class="favicon-light" opacity="0.3"/>
+</svg>

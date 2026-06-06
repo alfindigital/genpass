@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: 
+
+Sitemap: https://genpass.vercel.app/sitemap.xml
+
+# Specific rules for better crawl efficiency
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: MJ12bot
+User-agent: SemrushBot
+Disallow: /
