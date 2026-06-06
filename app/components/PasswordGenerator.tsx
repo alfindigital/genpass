@@ -10,7 +10,7 @@ export default function PasswordGenerator() {
   const [showPassword, setShowPassword] = useState(false)
   const [passwordHistory, setPasswordHistory] = useState<string[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const [preferences, setPreferences] = useState({
     length: 16,
@@ -32,7 +32,7 @@ export default function PasswordGenerator() {
       setPasswordHistory(JSON.parse(savedHistory))
     }
 
-    const savedTheme = localStorage.getItem('theme') || 'dark'
+    const savedTheme = localStorage.getItem('theme') || 'light'
     setIsDarkMode(savedTheme === 'dark')
     setIsHydrated(true)
   }, [])
@@ -275,38 +275,43 @@ export default function PasswordGenerator() {
           <div className="bg-card rounded-lg border border-border overflow-hidden mb-3">
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
-              className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-border/50 transition-colors"
+              className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-primary/5 transition-colors"
             >
               <h3 className="text-sm sm:text-base font-semibold">Password Terbaru</h3>
               <ChevronDown
-                className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${historyOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 text-primary ${historyOpen ? 'rotate-180' : ''}`}
               />
             </button>
 
             {historyOpen && (
-              <div className="border-t border-border px-2.5 sm:px-3 py-2.5 sm:py-3 space-y-1">
-                {passwordHistory.map((pwd, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-1.5 sm:p-2 bg-input rounded-lg group">
-                    <code className="flex-1 font-mono text-xs break-all text-muted-foreground">
-                      {pwd}
-                    </code>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(pwd)
-                        toast.success('Disalin!', { duration: 1500 })
-                      }}
-                      className="p-2 hover:bg-border rounded-lg transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 min-w-[44px] flex items-center justify-center"
-                      title="Salin"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+              <div className="border-t border-border px-2.5 sm:px-3 py-2.5 sm:py-3">
+                <div className="space-y-2">
+                  {passwordHistory.map((pwd, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2.5 sm:p-3 bg-gradient-to-r from-primary/5 to-transparent hover:from-primary/10 hover:to-primary/5 rounded-lg border border-primary/10 hover:border-primary/20 group transition-all">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Password #{passwordHistory.length - idx}</p>
+                        <code className="font-mono text-xs sm:text-sm break-all text-foreground font-medium">
+                          {pwd}
+                        </code>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(pwd)
+                          toast.success('Disalin!', { duration: 1500 })
+                        }}
+                        className="p-2 hover:bg-primary/20 rounded-lg transition-colors flex-shrink-0 opacity-60 group-hover:opacity-100 min-w-[44px] flex items-center justify-center text-primary"
+                        title="Salin"
+                      >
+                        <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
 
                 {passwordHistory.length > 0 && (
                   <button
                     onClick={clearHistory}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg font-medium transition-colors text-xs min-h-[44px]"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-3 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg font-medium transition-colors text-xs min-h-[44px] border border-destructive/20"
                   >
                     <Trash2 className="w-4 h-4" />
                     Hapus Riwayat
@@ -321,10 +326,33 @@ export default function PasswordGenerator() {
         <div className="flex-1" />
 
         {/* Footer */}
-        <div className="text-center py-2 sm:py-3 mt-2 border-t border-border/30">
-          <p className="text-xs text-muted-foreground">
+        <div className="border-t border-border/30 py-3 sm:py-4 mt-4 text-center">
+          <p className="text-xs text-muted-foreground mb-2">
             Aman. Berjalan Lokal. Tidak ada data yang dikirim ke server.
           </p>
+          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+            <span>by</span>
+            <a 
+              href="https://github.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-medium hover:text-primary transition-colors"
+            >
+              @alfindigital
+            </a>
+            <span>|</span>
+            <a 
+              href="https://v0.dev" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-medium hover:text-primary transition-colors flex items-center gap-1"
+            >
+              Edit with
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
     </main>
