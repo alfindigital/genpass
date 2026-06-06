@@ -88,24 +88,27 @@ export default function PasswordGenerator() {
   // Copy to clipboard with fallback
   const copyToClipboard = async () => {
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
+      // Try modern Clipboard API first
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(currentPassword)
         toast.success('Password disalin ke clipboard!', {
           duration: 2000,
         })
       } else {
-        fallbackCopyToClipboard()
+        // Fallback for older browsers or restricted environments
+        fallbackCopyToClipboard(currentPassword)
       }
     } catch (err) {
-      fallbackCopyToClipboard()
+      // If Clipboard API fails, use fallback
+      fallbackCopyToClipboard(currentPassword)
     }
   }
 
   // Fallback copy to clipboard using textarea
-  const fallbackCopyToClipboard = () => {
+  const fallbackCopyToClipboard = (text: string) => {
     try {
       const textarea = document.createElement('textarea')
-      textarea.value = currentPassword
+      textarea.value = text
       textarea.style.position = 'fixed'
       textarea.style.opacity = '0'
       document.body.appendChild(textarea)
@@ -295,9 +298,19 @@ export default function PasswordGenerator() {
                         </code>
                       </div>
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(pwd)
-                          toast.success('Disalin!', { duration: 1500 })
+                        onClick={async () => {
+                          try {
+                            if (navigator.clipboard?.writeText) {
+                              await navigator.clipboard.writeText(pwd)
+                            } else {
+                              fallbackCopyToClipboard(pwd)
+                              return
+                            }
+                            toast.success('Disalin!', { duration: 1500 })
+                          } catch (err) {
+                            fallbackCopyToClipboard(pwd)
+                            toast.success('Disalin!', { duration: 1500 })
+                          }
                         }}
                         className="p-2 hover:bg-primary/20 rounded-lg transition-colors flex-shrink-0 opacity-60 group-hover:opacity-100 min-w-[44px] flex items-center justify-center text-primary"
                         title="Salin"

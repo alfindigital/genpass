@@ -58,7 +58,7 @@ export default function RootLayout({
       </head>
       <body className={`${poppins.variable} font-poppins antialiased`}>
         {children}
-        <Toaster position="bottom-right" theme="dark" />
+        <Toaster position="bottom-right" theme="light" />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
