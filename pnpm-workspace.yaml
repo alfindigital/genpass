@@ -1,0 +1,10 @@
+# Setelan pnpm (pnpm >= 10 membaca override dari sini, bukan dari package.json).
+# Override di bawah menaikkan dependensi transitif ke versi yang sudah ditambal
+# supaya alert Dependabot tertutup tanpa mengubah API paket (tetap di major yang sama).
+overrides:
+  baseline-browser-mapping: ^2.11.0
+  browserslist: ^4.28.7
+  lodash: ^4.18.1
+  nanoid: ^3.3.20
+  postcss: ^8.5.31
+  source-map-js: ^1.2.2
